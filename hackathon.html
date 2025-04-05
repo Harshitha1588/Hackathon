@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Voice-Controlled Skill Tool Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #007acc;
+      margin-bottom: 20px;
+    }
+
+    select, button, input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background: #007acc;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #444;
+    }
+
+    .voice-btn {
+      background: #00b894;
+    }
+
+    .voice-btn:hover {
+      background: #00997a;
+    }
+
+    .tool-btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #ffc107;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .tool-btn:hover {
+      background-color: #e0a800;
+    }
+
+    .tool-info {
+      margin-top: 10px;
+      color: #333;
+      font-size: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🎙️ Voice-Controlled Skill Tool Finder</h2>
+
+    <label for="area">Select a Vocational Area:</label>
+    <select id="area">
+      <option value="healthcare">Healthcare</option>
+      <option value="construction">Construction</option>
+      <option value="agriculture">Agriculture</option>
+      <option value="it">Information Technology</option>
+    </select>
+
+    <label for="task">Enter or Speak a Task:</label>
+    <input type="text" id="task" placeholder="e.g., listen to heartbeat" />
+
+    <button onclick="findTool()">Find Tool</button>
+    <button class="voice-btn" onclick="startVoiceRecognition()">🎤 Speak</button>
+
+    <div class="result" id="result"></div>
+    <div class="tool-info" id="toolInfo"></div>
+  </div>
+
+  <script>
+    const tools = {
+      healthcare: {
+        "listen to heartbeat": {
+          name: "🩺 Stethoscope",
+          info: "Used by medical professionals to listen to internal sounds like the heartbeat and lungs."
+        },
+        "inject medicine": {
+          name: "💉 Syringe",
+          info: "Used for injecting medicine or drawing blood."
+        },
+        "check temperature": {
+          name: "🌡️ Thermometer",
+          info: "Used to measure body temperature."
+        }
+      },
+      construction: {
+        "cut wood": {
+          name: "🪚 Saw",
+          info: "Used for cutting wood and other materials."
+        },
+        "tighten bolts": {
+          name: "🔧 Wrench",
+          info: "Used to tighten or loosen bolts and nuts."
+        },
+        "hammer nails": {
+          name: "🔨 Hammer",
+          info: "Used to drive nails into wood or other materials."
+        }
+      },
+      agriculture: {
+        "plow field": {
+          name: "🚜 Tractor",
+          info: "Used for plowing and preparing soil."
+        },
+        "dig soil": {
+          name: "🪓 Shovel",
+          info: "Used to dig and move soil or compost."
+        },
+        "harvest crops": {
+          name: "🌾 Sickle",
+          info: "Used for harvesting crops manually."
+        }
+      },
+      it: {
+        "write code": {
+          name: "💻 Computer",
+          info: "Used for coding, development, and running software."
+        },
+        "debug program": {
+          name: "🐞 Debugger",
+          info: "Tool to find and fix bugs in code."
+        },
+        "connect to internet": {
+          name: "📡 Router",
+          info: "Provides internet connectivity."
+        }
+      }
+    };
+
+    function speak(text) {
+      const synth = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      synth.speak(utterance);
+    }
+
+    function findTool() {
+      const area = document.getElementById("area").value;
+      const task = document.getElementById("task").value.toLowerCase().trim();
+      const result = document.getElementById("result");
+      const infoDiv = document.getElementById("toolInfo");
+      infoDiv.style.display = "none";
+      infoDiv.innerText = "";
+
+      if (tools[area] && tools[area][task]) {
+        const tool = tools[area][task];
+        result.innerHTML = `✅ Tool for "${task}" in "${area}":<br><button class="tool-btn" onclick="showToolInfo('${tool.info}')">${tool.name}</button>`;
+        speak(`The tool for ${task} in ${area} is ${tool.name}`);
+      } else {
+        result.innerHTML = `❌ No tool found for "${task}" in "${area}". Try a different task.`;
+        speak(`No tool found for ${task} in ${area}.`);
+      }
+    }
+
+    function showToolInfo(info) {
+      const infoDiv = document.getElementById("toolInfo");
+      infoDiv.innerText = info;
+      infoDiv.style.display = "block";
+      speak(info);
+    }
+
+    function startVoiceRecognition() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.start();
+
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("task").value = transcript;
+        findTool();
+      };
+
+      recognition.onerror = function (event) {
+        alert("Voice recognition error: " + event.error);
+      };
+    }
+  </script>
+
+</body>
+</html>
